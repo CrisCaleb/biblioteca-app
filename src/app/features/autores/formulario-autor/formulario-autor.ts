@@ -75,6 +75,8 @@ import { Autor } from '../../../core/models/autor.model';
     </div>
   `
 })
+// ... imports ...
+
 export class FormularioAutorComponent implements OnInit {
   autor = signal<Partial<Autor>>({
     nombre: '',
@@ -104,28 +106,28 @@ export class FormularioAutorComponent implements OnInit {
   }
 
   async guardar() {
-  if (!this.autor().nombre || !this.autor().apellido) {
-    alert('Nombre y apellido son obligatorios');
-    return;
-  }
-
-  try {
-    if (this.isEditMode() && this.autorId()) {
-      const autorActualizado: Autor = {
-        id: this.autorId()!,
-        nombre: this.autor().nombre!,
-        apellido: this.autor().apellido!,
-        nacionalidad: this.autor().nacionalidad || '',
-        fechaNacimiento: this.autor().fechaNacimiento || ''
-      };
-      
-      await this.autorService.update(autorActualizado);
-    } else {
-      await this.autorService.create(this.autor() as Omit<Autor, 'id'>);
+    if (!this.autor().nombre || !this.autor().apellido) {
+      alert('Nombre y apellido son obligatorios');
+      return;
     }
-    this.router.navigate(['/autores']);
-  } catch (error) {
-    alert('Error al guardar el autor');
-    console.error(error);
+
+    try {
+      if (this.isEditMode() && this.autorId()) {
+        const autorActualizado: Autor = {
+          id: this.autorId()!,
+          nombre: this.autor().nombre!,
+          apellido: this.autor().apellido!,
+          nacionalidad: this.autor().nacionalidad || '',
+          fechaNacimiento: this.autor().fechaNacimiento || ''
+        };
+        await this.autorService.update(autorActualizado);
+      } else {
+        await this.autorService.create(this.autor() as Omit<Autor, 'id'>);
+      }
+      this.router.navigate(['/autores']);
+    } catch (error) {
+      alert('Error al guardar el autor');
+      console.error(error);
+    }
   }
-}
+} 

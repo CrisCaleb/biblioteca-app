@@ -183,26 +183,35 @@ export class FormularioLibroComponent implements OnInit {
     this.categorias.set(data);
   }
 
-  async guardar() {
-    if (!this.libro().titulo || !this.libro().isbn || 
-        this.libro().autorId === 0 || this.libro().categoriaId === 0) {
-      alert('Todos los campos obligatorios deben estar completos');
-      return;
-    }
+  // ... en el método guardar() ...
 
-    try {
-      if (this.isEditMode() && this.libroId()) {
-        await this.libroService.update({
-          ...this.libro(),
-          id: this.libroId()!
-        } as Libro);
-      } else {
-        await this.libroService.create(this.libro() as Omit<Libro, 'id'>);
-      }
-      this.router.navigate(['/libros']);
-    } catch (error) {
-      alert('Error al guardar el libro');
-      console.error(error);
-    }
+async guardar() {
+  if (!this.libro().titulo || !this.libro().isbn || 
+      this.libro().autorId === 0 || this.libro().categoriaId === 0) {
+    alert('Todos los campos obligatorios deben estar completos');
+    return;
   }
+
+  try {
+    if (this.isEditMode() && this.libroId()) {
+      const libroActualizado: Libro = {
+        id: this.libroId()!,
+        titulo: this.libro().titulo!,
+        isbn: this.libro().isbn!,
+        anioPublicacion: this.libro().anioPublicacion!,
+        precio: this.libro().precio!,
+        stock: this.libro().stock!,
+        autorId: this.libro().autorId!,
+        categoriaId: this.libro().categoriaId!
+      };
+      await this.libroService.update(libroActualizado);
+    } else {
+      await this.libroService.create(this.libro() as Omit<Libro, 'id'>);
+    }
+    this.router.navigate(['/libros']);
+  } catch (error) {
+    alert('Error al guardar el libro');
+    console.error(error);
+  }
+} 
 }

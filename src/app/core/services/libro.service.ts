@@ -6,8 +6,6 @@ import { CategoriaService } from './categoria.service';
 
 @Injectable({ providedIn: 'root' })
 export class LibroService {
-    private readonly STORE = 'libros';
-
     constructor(
         private db: IndexeddbService,
         private autorService: AutorService,
@@ -25,8 +23,7 @@ export class LibroService {
     }
 
     async getAll(): Promise<Libro[]> {
-        const libros = await this.db.getAll<Libro>(this.STORE);
-        // Cargar relaciones para cada libro
+        const libros = await this.db.getAllLibros();
         for (const libro of libros) {
         await this.cargarRelaciones(libro);
         }
@@ -34,7 +31,7 @@ export class LibroService {
     }
 
     async getById(id: number): Promise<Libro | undefined> {
-        const libro = await this.db.getById<Libro>(this.STORE, id);
+        const libro = await this.db.getLibroById(id);
         if (libro) {
         await this.cargarRelaciones(libro);
         }
@@ -42,22 +39,14 @@ export class LibroService {
     }
 
     async create(libro: Omit<Libro, 'id'>): Promise<number> {
-        return this.db.add<Libro>(this.STORE, libro);
+        return this.db.addLibro(libro);
     }
 
-    async update(libro: Libro & { id: number }): Promise<void> {
-        await this.db.update<Libro>(this.STORE, libro);
+    async update(libro: Libro): Promise<void> {
+        await this.db.updateLibro(libro);
     }
 
     async delete(id: number): Promise<void> {
-        await this.db.delete(this.STORE, id);
-    }
-
-    async getByAutor(autorId: number): Promise<Libro[]> {
-        return this.db.getByIndex<Libro>(this.STORE, 'by-autor', autorId);
-    }
-
-    async getByCategoria(categoriaId: number): Promise<Libro[]> {
-        return this.db.getByIndex<Libro>(this.STORE, 'by-categoria', categoriaId);
+        await this.db.deleteLibro(id);
     }
 }

@@ -54,10 +54,12 @@ import { Categoria } from '../../../core/models/categoria.model';
   `
 })
 export class FormularioCategoriaComponent implements OnInit {
+  // ✅ DECLARACIÓN CORRECTA DEL SIGNAL
   categoria = signal<Partial<Categoria>>({
     nombre: '',
     descripcion: ''
   });
+  
   isEditMode = signal(false);
   categoriaId = signal<number | null>(null);
 
@@ -79,18 +81,21 @@ export class FormularioCategoriaComponent implements OnInit {
     }
   }
 
-  async guardar() {
-    if (!this.categoria().nombre) {
-      alert('El nombre es obligatorio');
-      return;
-    }
 
-    try {
+async guardar() {
+  if (!this.categoria().nombre) {
+    alert('El nombre es obligatorio');
+    return;
+  }
+
+  try {
       if (this.isEditMode() && this.categoriaId()) {
-        await this.categoriaService.update({
-          ...this.categoria(),
-          id: this.categoriaId()!
-        } as Categoria);
+        const categoriaActualizada: Categoria = {
+          id: this.categoriaId()!,
+          nombre: this.categoria().nombre!,
+          descripcion: this.categoria().descripcion || ''
+        };
+        await this.categoriaService.update(categoriaActualizada);
       } else {
         await this.categoriaService.create(this.categoria() as Omit<Categoria, 'id'>);
       }

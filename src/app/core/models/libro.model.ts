@@ -1,3 +1,6 @@
+import { Autor } from './autor.model';
+import { Categoria } from './categoria.model';
+
 export interface Libro {
     id?: number;
     titulo: string;

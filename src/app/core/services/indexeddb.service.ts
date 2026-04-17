@@ -4,85 +4,127 @@ import { Autor } from '../models/autor.model';
 import { Categoria } from '../models/categoria.model';
 import { Libro } from '../models/libro.model';
 
-// Definición del esquema de la base de datos
 interface BibliotecaDB extends DBSchema {
-    autores: {
-        key: number;
-        value: Autor;
-    };
-    categorias: {
-        key: number;
-        value: Categoria;
-    };
-    libros: {
-        key: number;
+    autores: { key: number; value: Autor };
+    categorias: { key: number; value: Categoria };
+    libros: { 
+        key: number; 
         value: Libro;
         indexes: { 'by-autor': number; 'by-categoria': number };
     };
-    }
+}
 
-    @Injectable({ providedIn: 'root' })
-    export class IndexeddbService {
+@Injectable({ providedIn: 'root' })
+export class IndexeddbService {
     private readonly DB_NAME = 'BibliotecaDB';
     private readonly DB_VERSION = 1;
     private db: IDBPDatabase<BibliotecaDB> | null = null;
 
-    // Inicializar la base de datos
     private async getDB(): Promise<IDBPDatabase<BibliotecaDB>> {
         if (this.db) return this.db;
-
         this.db = await openDB<BibliotecaDB>(this.DB_NAME, this.DB_VERSION, {
         upgrade(db) {
-            // Store: Autores
             if (!db.objectStoreNames.contains('autores')) {
             db.createObjectStore('autores', { keyPath: 'id', autoIncrement: true });
             }
-            // Store: Categorías
             if (!db.objectStoreNames.contains('categorias')) {
             db.createObjectStore('categorias', { keyPath: 'id', autoIncrement: true });
             }
-            // Store: Libros (con índices para búsquedas)
             if (!db.objectStoreNames.contains('libros')) {
-            const libroStore = db.createObjectStore('libros', { 
-                keyPath: 'id', 
-                autoIncrement: true 
-            });
-            libroStore.createIndex('by-autor', 'autorId');
-            libroStore.createIndex('by-categoria', 'categoriaId');
+            const store = db.createObjectStore('libros', { keyPath: 'id', autoIncrement: true });
+            store.createIndex('by-autor', 'autorId');
+            store.createIndex('by-categoria', 'categoriaId');
             }
         }
         });
         return this.db;
     }
 
-    // === Métodos genéricos CRUD ===
-    async getAll<T>(store: string): Promise<T[]> {
+    // === AUTORES ===
+    async getAllAutores(): Promise<Autor[]> {
         const db = await this.getDB();
-        return db.getAll(store);
+        return db.getAll('autores');
     }
 
-    async getById<T>(store: string, id: number): Promise<T | undefined> {
+    async getAutorById(id: number): Promise<Autor | undefined> {
         const db = await this.getDB();
-        return db.get(store, id);
+        return db.get('autores', id);
     }
 
-    async add<T>(store: string, item: Omit<T, 'id'>): Promise<number> {
+    async addAutor(autor: Omit<Autor, 'id'>): Promise<number> {
         const db = await this.getDB();
-        return db.add(store, item as any);
+        return db.add('autores', autor as any);
     }
 
-    async update<T>(store: string, item: T & { id: number }): Promise<void> {
+    async updateAutor(autor: Autor): Promise<void> {
         const db = await this.getDB();
-        await db.put(store, item as any);
+        await db.put('autores', autor);
     }
 
-    async delete(store: string, id: number): Promise<void> {
+    async deleteAutor(id: number): Promise<void> {
         const db = await this.getDB();
-        await db.delete(store, id);
+        await db.delete('autores', id);
     }
 
-    async getByIndex<T>(store: string, index: string, value: any): Promise<T[]> {
+    // === CATEGORIAS ===
+    async getAllCategorias(): Promise<Categoria[]> {
         const db = await this.getDB();
-        return db.getAllFromIndex(store, index, value);
+        return db.getAll('categorias');
+    }
+
+    async getCategoriaById(id: number): Promise<Categoria | undefined> {
+        const db = await this.getDB();
+        return db.get('categorias', id);
+    }
+
+    async addCategoria(categoria: Omit<Categoria, 'id'>): Promise<number> {
+        const db = await this.getDB();
+        return db.add('categorias', categoria as any);
+    }
+
+    async updateCategoria(categoria: Categoria): Promise<void> {
+        const db = await this.getDB();
+        await db.put('categorias', categoria);
+    }
+
+    async deleteCategoria(id: number): Promise<void> {
+        const db = await this.getDB();
+        await db.delete('categorias', id);
+    }
+
+    // === LIBROS ===
+    async getAllLibros(): Promise<Libro[]> {
+        const db = await this.getDB();
+        return db.getAll('libros');
+    }
+
+    async getLibroById(id: number): Promise<Libro | undefined> {
+        const db = await this.getDB();
+        return db.get('libros', id);
+    }
+
+    async addLibro(libro: Omit<Libro, 'id'>): Promise<number> {
+        const db = await this.getDB();
+        return db.add('libros', libro as any);
+    }
+
+    async updateLibro(libro: Libro): Promise<void> {
+        const db = await this.getDB();
+        await db.put('libros', libro);
+    }
+
+    async deleteLibro(id: number): Promise<void> {
+        const db = await this.getDB();
+        await db.delete('libros', id);
+    }
+
+    async getLibrosByAutor(autorId: number): Promise<Libro[]> {
+        const db = await this.getDB();
+        return db.getAllFromIndex('libros', 'by-autor', autorId);
+    }
+
+    async getLibrosByCategoria(categoriaId: number): Promise<Libro[]> {
+        const db = await this.getDB();
+        return db.getAllFromIndex('libros', 'by-categoria', categoriaId);
     }
 }
